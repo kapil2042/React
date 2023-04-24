@@ -1,40 +1,46 @@
 import React, { useEffect } from 'react'
 
 function Calculator() {
-    const [display, setDisplay] = React.useState("");
     const [ans, setAns] = React.useState(0);
     const [expression, setExpression] = React.useState([]);
 
+    useEffect(() => {
+        handleResult()
+    }, [expression])
+
     const handleClick = value => {
-        setDisplay(value);
         setExpression([...expression, value]);
     };
-
+    let answer = 0
     const handleResult = () => {
-        const result = expression
+        if (!expression) return false
+        expression
             .join("")
             .split(/(\D)/g)
-            .map(value => (value.match(/\d/g) ? parseInt(value, 0) : value))
-            .reduce((acc, value, index, array) => {
+            .map(value => (value.match(/\d/g) ? Number(value) : value))
+            .map((value, index, array) => {
                 switch (value) {
                     case "+":
-                        return (acc = acc + array[index + 1]);
+                        return (answer = answer + array[index + 1]);
                     case "-":
-                        return (acc = acc - array[index + 1]);
+                        return (answer = answer - array[index + 1]);
                     case "*":
-                        return (acc = acc * array[index + 1]);
+                        return (answer = answer * array[index + 1]);
                     case "/":
-                        return (acc = acc / array[index + 1]);
+                        return (answer = answer / array[index + 1]);
                     default:
-                        return acc;
+                        if (answer === 0) {
+                            return answer = array[index];
+                        } else {
+                            return answer
+                        }
                 }
             });
-        setAns(result);
+        setAns(answer);
     };
     const clearAll = () => {
         setExpression("");
         setAns(0);
-        setDisplay("");
     }
     return (
         <div className='vh-100 d-flex justify-content-center align-items-center'>
