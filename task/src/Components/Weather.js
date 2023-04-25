@@ -3,19 +3,19 @@ import React, { useEffect, useState } from 'react'
 function Weather() {
     const [currentWether, setCurrentWether] = useState([])
     const [currentCityWether, setCurrentCityWether] = useState({})
-    const[wCity,setWCity]=useState([])
+    const [wCity, setWCity] = useState(localStorage.getItem('cities') == 'null' ? [] : JSON.parse(localStorage.getItem('cities')))
     const [search, setSearch] = useState()
-    const fetchWeather = (city) => {
-        fetch(`http://api.weatherapi.com/v1/current.json?key=4a018692a1f54a9babe175257231202&q=${city}&aqi=no`)
+    const fetchWeather = async (city) => {
+        const cc = await fetch(`http://api.weatherapi.com/v1/current.json?key=4a018692a1f54a9babe175257231202&q=${city}&aqi=no`)
             .then(response => {
                 return response.json()
             })
             .then(data => {
-                setCurrentWether([...currentWether,data])
+                setCurrentWether([...currentWether, data])
             })
     }
-    const fetchCurrentWeather = async() => {
-     const currentWeather= await fetch(`http://api.weatherapi.com/v1/current.json?key=4a018692a1f54a9babe175257231202&q=Ahmedabad&aqi=no`)
+    const fetchCurrentWeather = async () => {
+        const c = await fetch(`http://api.weatherapi.com/v1/current.json?key=4a018692a1f54a9babe175257231202&q=Ahmedabad&aqi=no`)
             .then(response => {
                 return response.json()
             })
@@ -24,32 +24,24 @@ function Weather() {
             })
     }
 
-    useEffect(()=>{
+    useEffect(() => {
         fetchCurrentWeather()
-        const localData=localStorage.getItem('cities')
-        const data=JSON.parse(localData)
-        data && setWCity(data)
-    },[])
+    }, [])
 
-    useEffect(()=>{
-        return ()=>{
-            wCity && localStorage.setItem('cities',JSON.stringify(wCity))
-        }
-    },[wCity])
+    useEffect(() => {
+        localStorage.setItem('cities', JSON.stringify(wCity))
+        wCity && setWCity([...wCity, search])
+    }, [search])
 
-    useEffect(()=>{
-        return ()=>{
-            setWCity([...wCity,search])
-        }        
-    },[search])
-
-    useEffect(()=>{
-        wCity.map((item)=>{
-            fetchCurrentWeather(item)
+    useEffect(() => {
+        wCity && wCity.map(async (item) => {
+            item && await fetchWeather(item)
         })
-    },[search])
-    
-    const handelSearach = (e)=>{
+        console.log(wCity)
+        console.log(currentWether)
+    }, [wCity])
+
+    const handelSearach = (e) => {
         e.preventDefault();
         setSearch(e.target.searchbar.value);
     }
@@ -70,21 +62,21 @@ function Weather() {
                 <input type='text' id='searchbar' name='searchbar' className='form-control' placeholder='Search city...' />
                 <button type='submit' className='btn btn-primary mt-3'>Search</button>
             </form>
-            {currentWether.length>0 ?
-                currentWether.slice(currentWether.length < 5? 0:currentWether.length-5,currentWether.length).map((item,key)=>{
-                    return(
-                    <div className='border p-3'>
-                        <p>Location : {currentWether?.location?.name}</p>
-                        <p>State : {currentWether?.location?.region}</p>
-                        <p>Country : {currentWether?.location?.country}</p>
-                        <p>TEMPERATURE : {currentWether?.current?.temp_c} 'c</p>
-                        <p>HUMIDITY : {currentWether?.current?.humidity}</p>
-                        <p>WIND SPEED : {currentWether?.current?.wind_kph} km/h</p>
-                        <p>PRESSURE : {currentWether?.current?.pressure_mb} mb</p>
-                    </div>
-                     )
-                }):""
-            } 
+            {currentWether.length > 0 ?
+                currentWether.slice(currentWether.length < 5 ? 0 : currentWether.length - 5, currentWether.length).map((item, key) => {
+                    return (
+                        <div className='border p-3 mt-3' key={key}>
+                            <p>Location : {item?.location?.name}</p>
+                            <p>State : {item?.location?.region}</p>
+                            <p>Country : {item?.location?.country}</p>
+                            <p>TEMPERATURE : {item?.current?.temp_c} 'c</p>
+                            <p>HUMIDITY : {item?.current?.humidity}</p>
+                            <p>WIND SPEED : {item?.current?.wind_kph} km/h</p>
+                            <p>PRESSURE : {item?.current?.pressure_mb} mb</p>
+                        </div>
+                    )
+                }) : ""
+            }
         </div>
     )
 }
